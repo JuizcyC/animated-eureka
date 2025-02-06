@@ -2,13 +2,15 @@ name: Mirror on .library changes
 
 on:
   push:
-    # Trigger only if files in the folder change
+    # Trigger the workflow when files under this folder (with .library extension) are changed.
     paths:
       - 'Library Repository/Beckhoff Automation LLC/**/*.library'
+  workflow_dispatch:   # Enables manual triggering of the workflow
 
 jobs:
   mirror:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
@@ -19,30 +21,32 @@ jobs:
         run: |
           git config --global user.email "github-actions@yourcompany.com"
           git config --global user.name "GitHub Actions Mirror"
-      
+
       - name: Mirror to Azure DevOps
         env:
+          # Define the target repository URL. Adjust as needed.
           TARGET_REPO: https://dev.azure.com/CPMfgOperations/CP-Machine%20Building/_git/SPT-Libraries-Mirror
+          # The PAT must be stored in your GitHub repository secrets as "AZDO_PAT"
           AZDO_PAT: ${{ secrets.AZDO_PAT }}
         run: |
-          # Create a temporary workspace directory
-          mkdir -p mirror_workspace && cd mirror_workspace
-          
-          # Clone the target repository from Azure DevOps.
-          # Here, we embed the PAT in the URL. Alternatively, use a credential helper.
+          # Create a temporary workspace
+          mkdir -p mirror_workspace
+          cd mirror_workspace
+
+          # Clone the target Azure DevOps repository using the PAT for authentication.
           git clone "https://${AZDO_PAT}@dev.azure.com/CPMfgOperations/CP-Machine%20Building/_git/SPT-Libraries-Mirror" target-repo
           cd target-repo
-          
-          # Add the GitHub repo as a remote (using the checked-out code from Actions)
-          git remote add github-origin ../..
+
+          # Add the GitHub repository (checked out by Actions) as a remote.
+          git remote add github-origin ../../
+
+          # Fetch all tags and branches from the GitHub remote.
           git fetch github-origin --tags
-          
-          # Force update all refs from GitHub to Azure DevOps repository.
-          # Be cautious: using --mirror and --force can overwrite changes.
+
+          # Mirror push to the target repository (be cautious: this overwrites all refs).
           git push origin --mirror --force
 
-          # If you need to preserve certain files (like pipeline definitions), do that here.
-          # Example: preserving azure-pipelines.yml if it exists in target.
+          # Optionally, preserve certain files (e.g. pipeline definitions) if they exist.
           if [ -f azure-pipelines.yml ]; then
             git checkout origin/main -- azure-pipelines.yml
             git commit -am "Preserve pipeline files" || echo "No changes to commit"
