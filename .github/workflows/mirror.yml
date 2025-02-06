@@ -24,7 +24,7 @@ jobs:
 
       - name: Mirror to Azure DevOps
         env:
-          # Define the target repository URL. Adjust as needed.
+          # Define the target repository URL without credentials.
           TARGET_REPO: https://dev.azure.com/CPMfgOperations/CP-Machine%20Building/_git/SPT-Libraries-Mirror
           # The PAT must be stored in your GitHub repository secrets as "AZDO_PAT"
           AZDO_PAT: ${{ secrets.AZDO_PAT }}
@@ -34,7 +34,8 @@ jobs:
           cd mirror_workspace
 
           # Clone the target Azure DevOps repository using the PAT for authentication.
-          git clone "https://${AZDO_PAT}@dev.azure.com/CPMfgOperations/CP-Machine%20Building/_git/SPT-Libraries-Mirror" target-repo
+          # Note: "user" is a dummy username required by Azure DevOps.
+          git clone "https://user:${AZDO_PAT}@dev.azure.com/CPMfgOperations/CP-Machine%20Building/_git/SPT-Libraries-Mirror" target-repo
           cd target-repo
 
           # Add the GitHub repository (checked out by Actions) as a remote.
