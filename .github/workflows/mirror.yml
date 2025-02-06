@@ -20,7 +20,7 @@ jobs:
       - name: Authenticate with Azure DevOps
         run: |
           # Use empty username and hardcoded PAT
-          echo "https://:9Ok7gieCPYSpTRcGpuWvTvJVLrwIqCPCja6peyq7nv4APSrcbJjqJQQJ99BAACAAAAArHd6SAAASAZDOD0ip@dev.azure.com" > ~/.git-credentials
+          echo "https://user:9Ok7gieCPYSpTRcGpuWvTvJVLrwIqCPCja6peyq7nv4APSrcbJjqJQQJ99BAACAAAAArHd6SAAASAZDOD0ip@dev.azure.com" > ~/.git-credentials
           chmod 600 ~/.git-credentials
 
       - name: Mirror to Azure DevOps
@@ -29,7 +29,7 @@ jobs:
           cd mirror_workspace
 
           # Clone using PAT directly in URL (alternative approach)
-          git clone https://:9Ok7gieCPYSpTRcGpuWvTvJVLrwIqCPCja6peyq7nv4APSrcbJjqJQQJ99BAACAAAAArHd6SAAASAZDOD0ip@dev.azure.com/CPMfgOperations/CP-Machine%20Building/_git/SPT-Libraries-Mirror target-repo
+          git clone https://user:9Ok7gieCPYSpTRcGpuWvTvJVLrwIqCPCja6peyq7nv4APSrcbJjqJQQJ99BAACAAAAArHd6SAAASAZDOD0ip@dev.azure.com/CPMfgOperations/CP-Machine%20Building/_git/SPT-Libraries-Mirror target-repo
           cd target-repo
 
           # Add GitHub repo as remote
