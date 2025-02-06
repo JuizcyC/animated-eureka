@@ -21,33 +21,35 @@ jobs:
         run: |
           git config --global user.email "github-actions@yourcompany.com"
           git config --global user.name "GitHub Actions Mirror"
+          git config --global credential.helper store
+
+      - name: Authenticate with Azure DevOps
+        run: |
+          echo "https://user:${AZDO_PAT}@dev.azure.com" > ~/.git-credentials
+          chmod 600 ~/.git-credentials
 
       - name: Mirror to Azure DevOps
         env:
-          # Define the target repository URL without credentials.
-          TARGET_REPO: https://dev.azure.com/CPMfgOperations/CP-Machine%20Building/_git/SPT-Libraries-Mirror
-          # The PAT must be stored in your GitHub repository secrets as "AZDO_PAT"
           AZDO_PAT: ${{ secrets.AZDO_PAT }}
         run: |
           # Create a temporary workspace
           mkdir -p mirror_workspace
           cd mirror_workspace
 
-          # Clone the target Azure DevOps repository using the PAT for authentication.
-          # Note: "user" is a dummy username required by Azure DevOps.
-          git clone "https://user:${AZDO_PAT}@dev.azure.com/CPMfgOperations/CP-Machine%20Building/_git/SPT-Libraries-Mirror" target-repo
+          # Clone the target Azure DevOps repository using the stored credentials
+          git clone https://dev.azure.com/CPMfgOperations/CP-Machine%20Building/_git/SPT-Libraries-Mirror target-repo
           cd target-repo
 
           # Add the GitHub repository (checked out by Actions) as a remote.
-          git remote add github-origin ../../
+          git remote add github-origin $GITHUB_WORKSPACE
 
           # Fetch all tags and branches from the GitHub remote.
           git fetch github-origin --tags
 
           # Mirror push to the target repository (be cautious: this overwrites all refs).
-          git push origin --mirror --force
+          git push --mirror --force origin
 
-          # Optionally, preserve certain files (e.g. pipeline definitions) if they exist.
+          # Optionally, preserve certain files (e.g., pipeline definitions) if they exist.
           if [ -f azure-pipelines.yml ]; then
             git checkout origin/main -- azure-pipelines.yml
             git commit -am "Preserve pipeline files" || echo "No changes to commit"
