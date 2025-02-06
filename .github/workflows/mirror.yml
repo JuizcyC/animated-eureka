@@ -20,12 +20,12 @@ jobs:
 
       - name: Authenticate with Azure DevOps
         run: |
-          echo "https://user:${{ secrets.AZDO_PAT }}@dev.azure.com" > ~/.git-credentials
+          echo "https://user:9Ok7gieCPYSpTRcGpuWvTvJVLrwIqCPCja6peyq7nv4APSrcbJjqJQQJ99BAACAAAAArHd6SAAASAZDOD0ip@dev.azure.com" > ~/.git-credentials
           chmod 600 ~/.git-credentials
 
       - name: Mirror to Azure DevOps
         env:
-          AZDO_PAT: ${{ secrets.AZDO_PAT }}
+          AZDO_PAT: 9Ok7gieCPYSpTRcGpuWvTvJVLrwIqCPCja6peyq7nv4APSrcbJjqJQQJ99BAACAAAAArHd6SAAASAZDOD0ip
         run: |
           # Create a temporary workspace
           mkdir -p mirror_workspace
