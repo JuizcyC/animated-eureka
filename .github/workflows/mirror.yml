@@ -1,0 +1,50 @@
+name: Mirror on .library changes
+
+on:
+  push:
+    # Trigger only if files in the folder change
+    paths:
+      - 'Library Repository/Beckhoff Automation LLC/**/*.library'
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config --global user.email "github-actions@yourcompany.com"
+          git config --global user.name "GitHub Actions Mirror"
+      
+      - name: Mirror to Azure DevOps
+        env:
+          TARGET_REPO: https://dev.azure.com/CPMfgOperations/CP-Machine%20Building/_git/SPT-Libraries-Mirror
+          AZDO_PAT: ${{ secrets.AZDO_PAT }}
+        run: |
+          # Create a temporary workspace directory
+          mkdir -p mirror_workspace && cd mirror_workspace
+          
+          # Clone the target repository from Azure DevOps.
+          # Here, we embed the PAT in the URL. Alternatively, use a credential helper.
+          git clone "https://${AZDO_PAT}@dev.azure.com/CPMfgOperations/CP-Machine%20Building/_git/SPT-Libraries-Mirror" target-repo
+          cd target-repo
+          
+          # Add the GitHub repo as a remote (using the checked-out code from Actions)
+          git remote add github-origin ../..
+          git fetch github-origin --tags
+          
+          # Force update all refs from GitHub to Azure DevOps repository.
+          # Be cautious: using --mirror and --force can overwrite changes.
+          git push origin --mirror --force
+
+          # If you need to preserve certain files (like pipeline definitions), do that here.
+          # Example: preserving azure-pipelines.yml if it exists in target.
+          if [ -f azure-pipelines.yml ]; then
+            git checkout origin/main -- azure-pipelines.yml
+            git commit -am "Preserve pipeline files" || echo "No changes to commit"
+            git push origin main
+          fi
