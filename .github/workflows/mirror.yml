@@ -12,11 +12,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
       - name: Configure Git
         run: |
           git config --global user.email "admincarlen@cpmfgoperations.onmicrosoft.com"
@@ -25,7 +20,7 @@ jobs:
 
       - name: Authenticate with Azure DevOps
         run: |
-          echo "https://user:${AZDO_PAT}@dev.azure.com" > ~/.git-credentials
+          echo "https://user:${{ secrets.AZDO_PAT }}@dev.azure.com" > ~/.git-credentials
           chmod 600 ~/.git-credentials
 
       - name: Mirror to Azure DevOps
