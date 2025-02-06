@@ -2,10 +2,9 @@ name: Mirror on .library changes
 
 on:
   push:
-    # Trigger the workflow when files under this folder (with .library extension) are changed.
     paths:
       - 'Library Repository/Beckhoff Automation LLC/**/*.library'
-  workflow_dispatch:   # Enables manual triggering of the workflow
+  workflow_dispatch:
 
 jobs:
   mirror:
@@ -20,33 +19,24 @@ jobs:
 
       - name: Authenticate with Azure DevOps
         run: |
-          echo "https://user:9Ok7gieCPYSpTRcGpuWvTvJVLrwIqCPCja6peyq7nv4APSrcbJjqJQQJ99BAACAAAAArHd6SAAASAZDOD0ip@dev.azure.com" > ~/.git-credentials
+          # Use empty username and hardcoded PAT
+          echo "https://:9Ok7gieCPYSpTRcGpuWvTvJVLrwIqCPCja6peyq7nv4APSrcbJjqJQQJ99BAACAAAAArHd6SAAASAZDOD0ip@dev.azure.com" > ~/.git-credentials
           chmod 600 ~/.git-credentials
 
       - name: Mirror to Azure DevOps
-        env:
-          AZDO_PAT: 9Ok7gieCPYSpTRcGpuWvTvJVLrwIqCPCja6peyq7nv4APSrcbJjqJQQJ99BAACAAAAArHd6SAAASAZDOD0ip
         run: |
-          # Create a temporary workspace
           mkdir -p mirror_workspace
           cd mirror_workspace
 
-          # Clone the target Azure DevOps repository using the stored credentials
-          git clone https://dev.azure.com/CPMfgOperations/CP-Machine%20Building/_git/SPT-Libraries-Mirror target-repo
+          # Clone using PAT directly in URL (alternative approach)
+          git clone https://:9Ok7gieCPYSpTRcGpuWvTvJVLrwIqCPCja6peyq7nv4APSrcbJjqJQQJ99BAACAAAAArHd6SAAASAZDOD0ip@dev.azure.com/CPMfgOperations/CP-Machine%20Building/_git/SPT-Libraries-Mirror target-repo
           cd target-repo
 
-          # Add the GitHub repository (checked out by Actions) as a remote.
-          git remote add github-origin $GITHUB_WORKSPACE
+          # Add GitHub repo as remote
+          git remote add github-origin "$GITHUB_WORKSPACE"
 
-          # Fetch all tags and branches from the GitHub remote.
+          # Fetch from GitHub
           git fetch github-origin --tags
 
-          # Mirror push to the target repository (be cautious: this overwrites all refs).
+          # Force push to Azure DevOps
           git push --mirror --force origin
-
-          # Optionally, preserve certain files (e.g., pipeline definitions) if they exist.
-          if [ -f azure-pipelines.yml ]; then
-            git checkout origin/main -- azure-pipelines.yml
-            git commit -am "Preserve pipeline files" || echo "No changes to commit"
-            git push origin main
-          fi
